@@ -1,39 +1,98 @@
-import Link from "next/link"
+"use client"
 
-import { siteConfig } from "@/config/site"
-import { buttonVariants } from "@/components/ui/button"
+import React, { ChangeEvent, FormEvent, useEffect, useState } from "react"
+import Image from "next/image"
+import axios from "axios"
 
-export default function IndexPage() {
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import PostList from "@/components/PostList"
+import PostCard from "@/components/post-card"
+
+export default function Home() {
+  const [posts, setPosts] = useState<any>([])
+  const [search, setSearch] = useState("")
+
+  useEffect(() => {
+    getPosts()
+  }, [])
+
+  const getPosts = async () => {
+    const response = await axios.get(
+      `https://www.reddit.com/search.json?q=${search}`
+    )
+    setPosts(response.data.data.children)
+  }
+
+  const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value)
+  }
+
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    getPosts()
+  }
+  const clearResults = () => {
+    setSearch("")
+    setPosts([])
+  }
+
   return (
-    <section className="container grid items-center gap-6 pb-8 pt-6 md:py-10">
-      <div className="flex max-w-[980px] flex-col items-start gap-2">
-        <h1 className="text-3xl font-extrabold leading-tight tracking-tighter md:text-4xl">
-          Beautifully designed components <br className="hidden sm:inline" />
-          built with Radix UI and Tailwind CSS.
-        </h1>
-        <p className="max-w-[700px] text-lg text-muted-foreground">
-          Accessible and customizable components that you can copy and paste
-          into your apps. Free. Open Source. And Next.js 13 Ready.
-        </p>
-      </div>
-      <div className="flex gap-4">
-        <Link
-          href={siteConfig.links.docs}
-          target="_blank"
-          rel="noreferrer"
-          className={buttonVariants()}
-        >
-          Documentation
-        </Link>
-        <Link
-          target="_blank"
-          rel="noreferrer"
-          href={siteConfig.links.github}
-          className={buttonVariants({ variant: "outline" })}
-        >
-          GitHub
-        </Link>
-      </div>
-    </section>
+    <div className="container mx-auto p-4">
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-center justify-center mb-4"
+      >
+        <div className="flex w-full max-w-sm items-center space-x-2">
+          <Input
+            type="text"
+            placeholder="Search for posts"
+            onChange={handleSearch}
+            value={search}
+          />
+          <Button type="submit">Search</Button>
+        </div>
+      </form>
+
+      {posts.length === 0 ? (
+        <Tabs defaultValue="hot">
+          <TabsList className="flex justify-center">
+            <TabsTrigger value="hot">Hot</TabsTrigger>
+            <TabsTrigger value="new">New</TabsTrigger>
+            <TabsTrigger value="rising">Rising</TabsTrigger>
+          </TabsList>
+          <TabsContent value="hot">
+            <PostList
+              api={`https://www.reddit.com/r/Home/hot.json?limit=5&amp;t=2022`}
+            />
+          </TabsContent>
+          <TabsContent value="new">
+            <PostList
+              api={`https://www.reddit.com/r/Home/new.json?limit=5&amp;t=2022`}
+            />
+          </TabsContent>
+          <TabsContent value="rising">
+            <PostList
+              api={`https://www.reddit.com/r/Home/rising.json?limit=5&amp;t=2022`}
+            />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <>
+          <div className= "flex gap-4 mb-14 align-middle">
+            <h1 className="text-2xl font-bold mb-4">Search results for {search}</h1>
+            <Button  onClick={clearResults}>Clear Results</Button>
+          </div>
+          {posts.map((post, index) => (
+            <PostCard 
+              title={post.data.title}
+              description={post.data.author}
+              content={post.data.selftext}
+            />
+          ))}
+        </>
+      )}
+    </div>
   )
 }
