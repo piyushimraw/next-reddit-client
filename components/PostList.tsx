@@ -30,6 +30,7 @@ function PostList({ api }: PostListProps) {
     return (
       <PostCard
         title={post.data.title}
+        key={post.data.id}
         description={post.data.author}
         content={post.data.selftext}
       />

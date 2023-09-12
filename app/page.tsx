@@ -80,12 +80,15 @@ export default function Home() {
         </Tabs>
       ) : (
         <>
-          <div className= "flex gap-4 mb-14 align-middle">
-            <h1 className="text-2xl font-bold mb-4">Search results for {search}</h1>
-            <Button  onClick={clearResults}>Clear Results</Button>
+          <div className="flex gap-4 mb-14 align-middle">
+            <h1 className="text-2xl font-bold mb-4">
+              Search results for {search}
+            </h1>
+            <Button onClick={clearResults}>Clear Results</Button>
           </div>
-          {posts.map((post, index) => (
-            <PostCard 
+          {posts.map((post: any, index: number) => (
+            <PostCard
+              key={post.data.id}
               title={post.data.title}
               description={post.data.author}
               content={post.data.selftext}
